@@ -146,18 +146,25 @@ let animationId;
 function initThreeJS() {
     const container = document.getElementById('char-canvas-container');
     
-    // If already initialized, just ensure resize
+    // Cleanup if re-initializing (though we try to reuse)
     if (renderer) {
-        onWindowResize();
-        return;
+         // Check if container is still the same, if so, just resize
+         if (renderer.domElement.parentElement === container) {
+             onWindowResize();
+             return;
+         } else {
+             // Re-append if moved (unlikely)
+             container.appendChild(renderer.domElement);
+             onWindowResize();
+             return;
+         }
     }
 
     // Scene setup
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x111111); // Dark grey background
-    // Add some fog for depth
-    scene.fog = new THREE.Fog(0x111111, 5, 20);
-
+    // Transparent background to see the eerie monsters behind, but darkened
+    // We handle background darkening via CSS on the container or setClearColor
+    
     // Camera
     camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
     camera.position.set(3, 2, 4);
@@ -165,10 +172,20 @@ function initThreeJS() {
 
     // Renderer
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
+    // Semi-transparent dark background to show the monster wallpaper faintly
+    renderer.setClearColor(0x000000, 0.6); 
     container.appendChild(renderer.domElement);
+
+    // Resize Observer for robustness
+    const resizeObserver = new ResizeObserver(() => {
+        onWindowResize();
+    });
+    resizeObserver.observe(container);
+
+    // Trigger initial resize
+    onWindowResize();
 
     // Controls
     controls = new OrbitControls(camera, renderer.domElement);
@@ -360,171 +377,203 @@ function createCatModel() {
     characterGroup = new THREE.Group();
     scene.add(characterGroup);
 
-    // Initial Material State (Black, No Pattern)
+    // Material Setup
     const initTexture = createProceduralTexture('#1a1a1a', 'none');
-    
     const catMaterial = new THREE.MeshStandardMaterial({ 
         map: initTexture,
         color: 0xffffff,
-        roughness: 0.6,
+        roughness: 0.8,
         metalness: 0.1
     });
-
-    // Store for updates
     characterGroup.userData.mainMaterial = catMaterial;
     
-    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Glowing green
+    const eyeMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x22ff22, 
+        emissive: 0x00aa00,
+        emissiveIntensity: 0.5,
+        roughness: 0.2
+    });
     const pupilMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-    const noseMaterial = new THREE.MeshStandardMaterial({ color: 0xffaaaa, roughness: 0.4 });
+    const noseMaterial = new THREE.MeshStandardMaterial({ color: 0xffaaaa, roughness: 0.5 });
+    const insideEarMaterial = new THREE.MeshStandardMaterial({ color: 0x664444, roughness: 1.0 });
 
-    // 1. Body (Torso)
-    const bodyGeo = new THREE.CapsuleGeometry(0.3, 0.7, 4, 8);
-    // Rotate to be horizontal
-    const body = new THREE.Mesh(bodyGeo, catMaterial);
-    body.rotation.z = Math.PI / 2;
-    body.position.y = 0.5; // Lift off ground
-    body.castShadow = true;
-    characterGroup.add(body);
+    // --- ANATOMY CONSTRUCTION ---
 
-    // 2. Head Group
+    // 1. Torso (Chest + Belly)
+    const torsoGroup = new THREE.Group();
+    characterGroup.add(torsoGroup);
+
+    // Chest - Ribcage area
+    const chestGeo = new THREE.BoxGeometry(0.35, 0.45, 0.4);
+    // Smooth it with subdivision modifier if we could, but let's shape it with scaling
+    // Use a Sphere for organic shape?
+    // Let's use a deformed sphere for chest
+    const chestMesh = new THREE.Mesh(new THREE.SphereGeometry(0.25, 16, 16), catMaterial);
+    chestMesh.scale.set(1.4, 1.1, 1.2); 
+    chestMesh.position.set(0.2, 0.45, 0);
+    chestMesh.castShadow = true;
+    torsoGroup.add(chestMesh);
+
+    // Belly/Hips
+    const hipMesh = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), catMaterial);
+    hipMesh.scale.set(1.4, 1.1, 1.3);
+    hipMesh.position.set(-0.25, 0.48, 0); // Behind chest
+    hipMesh.castShadow = true;
+    torsoGroup.add(hipMesh);
+
+    // 2. Head
     const headGroup = new THREE.Group();
-    headGroup.position.set(0.5, 0.6, 0); // Front and up
+    headGroup.position.set(0.55, 0.65, 0);
+    torsoGroup.add(headGroup); // Attach to torso? No, keep separate for easier animation control in this simple rig
+    // Re-parent head to characterGroup for independent control
     characterGroup.add(headGroup);
 
-    // Head Mesh
-    const headGeo = new THREE.SphereGeometry(0.25, 16, 16);
-    // Slightly flatten the head
-    headGeo.scale(1, 0.85, 1); 
-    const head = new THREE.Mesh(headGeo, catMaterial);
-    head.castShadow = true;
-    headGroup.add(head);
+    // Main skull
+    const skull = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), catMaterial);
+    skull.scale.set(1, 0.85, 1);
+    skull.castShadow = true;
+    headGroup.add(skull);
+
+    // Cheeks/Jowls
+    const cheekL = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), catMaterial);
+    cheekL.position.set(0.1, -0.08, 0.12);
+    headGroup.add(cheekL);
+
+    const cheekR = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), catMaterial);
+    cheekR.position.set(0.1, -0.08, -0.12);
+    headGroup.add(cheekR);
+
+    // Snout
+    const snout = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), catMaterial);
+    snout.scale.set(1.2, 0.8, 1);
+    snout.position.set(0.2, -0.05, 0);
+    headGroup.add(snout);
+
+    // Nose
+    const nose = new THREE.Mesh(new THREE.BufferGeometry(), noseMaterial);
+    // Triangle nose
+    const noseVerts = new Float32Array([
+        0, 0.02, 0,
+        0, -0.01, 0.03,
+        0, -0.01, -0.03
+    ]);
+    nose.geometry.setAttribute('position', new THREE.BufferAttribute(noseVerts, 3));
+    nose.geometry.computeVertexNormals();
+    nose.position.set(0.28, -0.02, 0);
+    nose.rotation.y = -Math.PI/2;
+    headGroup.add(nose);
 
     // Ears
     const earGeo = new THREE.ConeGeometry(0.08, 0.15, 4);
-    
     const earL = new THREE.Mesh(earGeo, catMaterial);
-    earL.position.set(0.05, 0.2, 0.12);
-    earL.rotation.set(-0.2, 0, 0.2); // Tilt
+    earL.position.set(-0.05, 0.18, 0.12);
+    earL.rotation.set(-0.2, 0, 0.4); 
     headGroup.add(earL);
 
     const earR = new THREE.Mesh(earGeo, catMaterial);
-    earR.position.set(0.05, 0.2, -0.12);
-    earR.rotation.set(-0.2, 0, -0.2); // Tilt
+    earR.position.set(-0.05, 0.18, -0.12);
+    earR.rotation.set(-0.2, 0, -0.4); 
     headGroup.add(earR);
 
     // Eyes
-    const eyeGeo = new THREE.SphereGeometry(0.06, 16, 16);
-    
+    const eyeGeo = new THREE.SphereGeometry(0.055, 16, 16);
     const eyeL = new THREE.Mesh(eyeGeo, eyeMaterial);
-    eyeL.position.set(0.18, 0.05, 0.08);
-    // Flatten eye against face
+    eyeL.position.set(0.14, 0.05, 0.08);
     eyeL.scale.set(0.5, 1, 1);
     headGroup.add(eyeL);
 
     const eyeR = new THREE.Mesh(eyeGeo, eyeMaterial);
-    eyeR.position.set(0.18, 0.05, -0.08);
+    eyeR.position.set(0.14, 0.05, -0.08);
     eyeR.scale.set(0.5, 1, 1);
     headGroup.add(eyeR);
 
-    // Pupils (Slits)
-    const pupilGeo = new THREE.BoxGeometry(0.01, 0.08, 0.02);
+    // Pupils
+    const pupilGeo = new THREE.BoxGeometry(0.01, 0.08, 0.015);
     const pupilL = new THREE.Mesh(pupilGeo, pupilMaterial);
-    pupilL.position.set(0.21, 0.05, 0.08);
+    pupilL.position.set(0.165, 0.05, 0.08);
     headGroup.add(pupilL);
-
     const pupilR = new THREE.Mesh(pupilGeo, pupilMaterial);
-    pupilR.position.set(0.21, 0.05, -0.08);
+    pupilR.position.set(0.165, 0.05, -0.08);
     headGroup.add(pupilR);
 
-    // Snout
-    const snoutGeo = new THREE.SphereGeometry(0.08, 16, 16);
-    snoutGeo.scale(1, 0.6, 1.2);
-    const snout = new THREE.Mesh(snoutGeo, catMaterial);
-    snout.position.set(0.22, -0.05, 0);
-    headGroup.add(snout);
-
-    // Nose
-    const noseGeo = new THREE.BufferGeometry();
-    // Simple Triangle geometry for nose
-    const noseVertices = new Float32Array([
-        0, 0.03, 0,
-        0, -0.03, 0.04,
-        0, -0.03, -0.04
-    ]);
-    noseGeo.setAttribute('position', new THREE.BufferAttribute(noseVertices, 3));
-    noseGeo.computeVertexNormals();
-    const nose = new THREE.Mesh(noseGeo, noseMaterial);
-    nose.position.set(0.29, -0.02, 0);
-    nose.rotation.y = -Math.PI / 2; // Face forward
-    headGroup.add(nose);
-
     // Whiskers
-    const whiskerMat = new THREE.LineBasicMaterial({ color: 0x888888 });
+    const whiskerMat = new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.6 });
     const whiskerGeo = new THREE.BufferGeometry();
-    const whiskerPoints = [];
-    // 3 whiskers per side
-    for(let i=-1; i<=1; i++) {
-        // Right side
-        whiskerPoints.push(new THREE.Vector3(0.25, -0.05, 0.05));
-        whiskerPoints.push(new THREE.Vector3(0.35, -0.05 + (i*0.02), 0.2));
-        // Left side
-        whiskerPoints.push(new THREE.Vector3(0.25, -0.05, -0.05));
-        whiskerPoints.push(new THREE.Vector3(0.35, -0.05 + (i*0.02), -0.2));
+    const wPoints = [];
+    for(let i=0; i<3; i++) {
+        // Right
+        wPoints.push(new THREE.Vector3(0.2, -0.08, 0.1));
+        wPoints.push(new THREE.Vector3(0.35, -0.1 + (i*0.03), 0.25 + (i*0.05)));
+        // Left
+        wPoints.push(new THREE.Vector3(0.2, -0.08, -0.1));
+        wPoints.push(new THREE.Vector3(0.35, -0.1 + (i*0.03), -0.25 - (i*0.05)));
     }
-    whiskerGeo.setFromPoints(whiskerPoints);
+    whiskerGeo.setFromPoints(wPoints);
     const whiskers = new THREE.LineSegments(whiskerGeo, whiskerMat);
     headGroup.add(whiskers);
 
-
-    // 3. Legs
-    const legGeo = new THREE.CylinderGeometry(0.06, 0.04, 0.5, 8);
-    
-    // Helper to create leg
-    function createLeg(x, z) {
+    // 3. Legs (Articulated)
+    function createLeg(x, y, z, isBack) {
         const legGroup = new THREE.Group();
-        legGroup.position.set(x, 0.4, z); // Shoulder pivot point
-        
-        const legMesh = new THREE.Mesh(legGeo, catMaterial);
-        legMesh.position.y = -0.2; // Offset so pivot is at top
-        legMesh.castShadow = true;
-        
-        legGroup.add(legMesh);
+        legGroup.position.set(x, y, z);
+
+        // Thigh / Upper Leg
+        const thighGeo = new THREE.CapsuleGeometry(0.07, 0.2, 4, 8);
+        const thigh = new THREE.Mesh(thighGeo, catMaterial);
+        thigh.position.y = -0.1;
+        // Angle differently for front vs back
+        thigh.rotation.x = isBack ? 0.3 : -0.1;
+        thigh.castShadow = true;
+        legGroup.add(thigh);
+
+        // Lower Leg
+        const shinGeo = new THREE.CapsuleGeometry(0.05, 0.2, 4, 8);
+        const shin = new THREE.Mesh(shinGeo, catMaterial);
+        shin.position.set(0, -0.25, isBack ? 0.05 : -0.02);
+        shin.rotation.x = isBack ? -0.4 : 0.1;
+        shin.castShadow = true;
+        thigh.add(shin); // Parent to thigh
+
+        // Paw
+        const pawGeo = new THREE.BoxGeometry(0.08, 0.06, 0.1);
+        const paw = new THREE.Mesh(pawGeo, catMaterial);
+        paw.position.set(0, -0.15, 0.05);
+        paw.rotation.x = 0;
+        shin.add(paw);
+
         characterGroup.add(legGroup);
         return legGroup;
     }
 
-    const frontLeft = createLeg(0.3, 0.15);
-    const frontRight = createLeg(0.3, -0.15);
-    const backLeft = createLeg(-0.3, 0.15);
-    const backRight = createLeg(-0.3, -0.15);
+    const fl = createLeg(0.3, 0.35, 0.15, false);
+    const fr = createLeg(0.3, 0.35, -0.15, false);
+    const bl = createLeg(-0.3, 0.4, 0.15, true);
+    const br = createLeg(-0.3, 0.4, -0.15, true);
 
-    // 4. Tail
-    // Tail made of connected segments for potential animation
+    // 4. Tail (Dynamic)
     const tailGroup = new THREE.Group();
-    tailGroup.position.set(-0.4, 0.6, 0);
+    tailGroup.position.set(-0.45, 0.55, 0);
     characterGroup.add(tailGroup);
-
-    // Just a curved tube for now using a CatmullRomCurve3
+    
+    // Create tail segments for better animation
     const curve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(-0.2, 0.1, 0),
-        new THREE.Vector3(-0.3, 0.3, 0),
-        new THREE.Vector3(-0.2, 0.5, 0) // S shape up
+        new THREE.Vector3(-0.1, 0.1, 0),
+        new THREE.Vector3(-0.15, 0.3, 0),
+        new THREE.Vector3(-0.1, 0.5, 0),
+        new THREE.Vector3(0, 0.6, 0)
     ]);
-    
-    const tailGeo = new THREE.TubeGeometry(curve, 10, 0.04, 8, false);
-    const tail = new THREE.Mesh(tailGeo, catMaterial);
-    tail.castShadow = true;
-    tailGroup.add(tail);
+    const tailGeo = new THREE.TubeGeometry(curve, 20, 0.04, 8, false);
+    const tailMesh = new THREE.Mesh(tailGeo, catMaterial);
+    tailMesh.castShadow = true;
+    tailGroup.add(tailMesh);
 
-    // Store references for animation
+
+    // Store refs
     characterGroup.userData = {
         head: headGroup,
         tail: tailGroup,
-        fl: frontLeft,
-        fr: frontRight,
-        bl: backLeft,
-        br: backRight,
+        fl: fl, fr: fr, bl: bl, br: br,
         time: 0
     };
 }
@@ -533,9 +582,14 @@ function onWindowResize() {
     const container = document.getElementById('char-canvas-container');
     if (!container || !camera || !renderer) return;
     
-    camera.aspect = container.clientWidth / container.clientHeight;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    
+    if (width === 0 || height === 0) return;
+
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(width, height);
 }
 
 function animate() {
