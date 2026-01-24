@@ -18,6 +18,82 @@
                 <button id="btn-settings" class="menu-btn">Settings</button>
             </div>
         </div>
+
+        <!-- Settings View -->
+        <div id="settings-view" class="menu-container hidden">
+            <h2 class="game-title" style="font-size: 2.5rem;">Settings</h2>
+            
+            <div class="settings-content">
+                <!-- Language Section -->
+                <div class="setting-group">
+                    <label for="setting-language">Language</label>
+                    <select id="setting-language" class="setting-input">
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="de">Deutsch</option>
+                        <option value="jp">日本語</option>
+                    </select>
+                </div>
+
+                <!-- Gamma/Lighting Section -->
+                <div class="setting-group">
+                    <label for="setting-gamma">Lighting (Gamma)</label>
+                    <div class="range-container">
+                        <span class="range-icon">🌑</span>
+                        <input type="range" id="setting-gamma" min="50" max="150" value="100" class="setting-range">
+                        <span class="range-icon">☀️</span>
+                    </div>
+                </div>
+
+                <!-- Controls Section -->
+                <div class="setting-group">
+                    <h3>Controls</h3>
+                    
+                    <!-- Mobile Controls -->
+                    <div class="subsection">
+                        <label>Mobile Input Style</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="mobile-control" value="joystick" checked>
+                                <span class="radio-custom"></span>
+                                Joystick
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="mobile-control" value="dpad">
+                                <span class="radio-custom"></span>
+                                D-Pad Buttons
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Desktop Controls -->
+                    <div class="subsection">
+                        <label>Desktop Configuration</label>
+                        <div class="control-display">
+                            <div class="control-row">
+                                <span>Keyboard:</span>
+                                <select class="setting-input small">
+                                    <option>WASD + Space</option>
+                                    <option>Arrows + Ctrl</option>
+                                </select>
+                            </div>
+                            <div class="control-row">
+                                <span>Gamepad:</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button id="btn-back" class="menu-btn">Back</button>
+            </div>
+        </div>
     </div>
     <script type="module" src="main.js"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>

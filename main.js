@@ -81,15 +81,33 @@ function setupEventListeners() {
         console.log("New Game clicked");
         // Placeholder for new game logic
         alert("Starting a new game...");
-        
-        // Simulate creating a save so continue becomes available next time (if we had real logic)
-        // localStorage.setItem('hasSave', 'true');
     });
 
+    // Settings Navigation
+    const mainMenu = document.querySelector('.menu-container:not(#settings-view)');
+    const settingsMenu = document.getElementById('settings-view');
+    const backBtn = document.getElementById('btn-back');
+
     settingsBtn.addEventListener('click', () => {
-        console.log("Settings clicked");
-        // Placeholder for settings logic
-        alert("Opening settings...");
+        mainMenu.classList.add('hidden');
+        settingsMenu.classList.remove('hidden');
+    });
+
+    backBtn.addEventListener('click', () => {
+        settingsMenu.classList.add('hidden');
+        mainMenu.classList.remove('hidden');
+    });
+
+    // Settings Logic
+    const gammaSlider = document.getElementById('setting-gamma');
+    const app = document.getElementById('app');
+
+    gammaSlider.addEventListener('input', (e) => {
+        const val = e.target.value;
+        // 100 is default (100% brightness). 
+        // 50 is dark (50%), 150 is bright (150%)
+        const brightness = val / 100;
+        app.style.filter = `brightness(${brightness})`;
     });
     
     continueBtn.addEventListener('click', () => {
