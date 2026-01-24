@@ -1,9 +1,11 @@
 // Main entry point for the title screen logic
+import { translations } from './translations.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initAudio();
     checkGameState();
     setupEventListeners();
+    updateLanguage('en'); // Default language
 });
 
 let audioContext = null;
@@ -87,18 +89,24 @@ function setupEventListeners() {
     const mainMenu = document.querySelector('.menu-container:not(#settings-view)');
     const settingsMenu = document.getElementById('settings-view');
     const backBtn = document.getElementById('btn-back');
+    const closeBtn = document.getElementById('btn-close-settings');
 
-    settingsBtn.addEventListener('click', () => {
+    function openSettings() {
         mainMenu.classList.add('hidden');
         settingsMenu.classList.remove('hidden');
-    });
+    }
 
-    backBtn.addEventListener('click', () => {
+    function closeSettings() {
         settingsMenu.classList.add('hidden');
         mainMenu.classList.remove('hidden');
-    });
+    }
+
+    settingsBtn.addEventListener('click', openSettings);
+    backBtn.addEventListener('click', closeSettings);
+    closeBtn.addEventListener('click', closeSettings);
 
     // Settings Logic
+    const languageSelect = document.getElementById('setting-language');
     const gammaSlider = document.getElementById('setting-gamma');
     const app = document.getElementById('app');
 
@@ -109,10 +117,28 @@ function setupEventListeners() {
         const brightness = val / 100;
         app.style.filter = `brightness(${brightness})`;
     });
+
+    languageSelect.addEventListener('change', (e) => {
+        updateLanguage(e.target.value);
+    });
     
     continueBtn.addEventListener('click', () => {
         if (!continueBtn.disabled) {
             console.log("Continue clicked");
+        }
+    });
+}
+
+function updateLanguage(lang) {
+    const t = translations[lang] || translations['en'];
+    
+    // Find all elements with data-i18n attribute
+    const elements = document.querySelectorAll('[data-i18n]');
+    
+    elements.forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) {
+            el.textContent = t[key];
         }
     });
 }

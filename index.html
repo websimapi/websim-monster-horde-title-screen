@@ -10,23 +10,24 @@
     <div id="app">
         <div class="background-overlay"></div>
         <div class="menu-container">
-            <h1 class="game-title">Goblins in the Night</h1>
+            <h1 class="game-title" data-i18n="gameTitle">Goblins in the Night</h1>
             
             <div class="button-group">
-                <button id="btn-continue" class="menu-btn" disabled>Continue</button>
-                <button id="btn-new-game" class="menu-btn">New Game</button>
-                <button id="btn-settings" class="menu-btn">Settings</button>
+                <button id="btn-continue" class="menu-btn" disabled data-i18n="btnContinue">Continue</button>
+                <button id="btn-new-game" class="menu-btn" data-i18n="btnNewGame">New Game</button>
+                <button id="btn-settings" class="menu-btn" data-i18n="btnSettings">Settings</button>
             </div>
         </div>
 
         <!-- Settings View -->
         <div id="settings-view" class="menu-container hidden">
-            <h2 class="game-title" style="font-size: 2.5rem;">Settings</h2>
+            <button id="btn-close-settings" class="close-btn">×</button>
+            <h2 class="game-title" style="font-size: 2.5rem;" data-i18n="settingsTitle">Settings</h2>
             
             <div class="settings-content">
                 <!-- Language Section -->
                 <div class="setting-group">
-                    <label for="setting-language">Language</label>
+                    <label for="setting-language" data-i18n="lblLanguage">Language</label>
                     <select id="setting-language" class="setting-input">
                         <option value="en">English</option>
                         <option value="es">Español</option>
@@ -38,7 +39,7 @@
 
                 <!-- Gamma/Lighting Section -->
                 <div class="setting-group">
-                    <label for="setting-gamma">Lighting (Gamma)</label>
+                    <label for="setting-gamma" data-i18n="lblLighting">Lighting (Gamma)</label>
                     <div class="range-container">
                         <span class="range-icon">🌑</span>
                         <input type="range" id="setting-gamma" min="50" max="150" value="100" class="setting-range">
@@ -48,38 +49,38 @@
 
                 <!-- Controls Section -->
                 <div class="setting-group">
-                    <h3>Controls</h3>
+                    <h3 data-i18n="lblControls">Controls</h3>
                     
                     <!-- Mobile Controls -->
                     <div class="subsection">
-                        <label>Mobile Input Style</label>
+                        <label data-i18n="lblMobileInput">Mobile Input Style</label>
                         <div class="radio-group">
                             <label class="radio-label">
                                 <input type="radio" name="mobile-control" value="joystick" checked>
                                 <span class="radio-custom"></span>
-                                Joystick
+                                <span data-i18n="lblJoystick">Joystick</span>
                             </label>
                             <label class="radio-label">
                                 <input type="radio" name="mobile-control" value="dpad">
                                 <span class="radio-custom"></span>
-                                D-Pad Buttons
+                                <span data-i18n="lblDpad">D-Pad Buttons</span>
                             </label>
                         </div>
                     </div>
 
                     <!-- Desktop Controls -->
                     <div class="subsection">
-                        <label>Desktop Configuration</label>
+                        <label data-i18n="lblDesktopConfig">Desktop Configuration</label>
                         <div class="control-display">
                             <div class="control-row">
-                                <span>Keyboard:</span>
+                                <span data-i18n="lblKeyboard">Keyboard:</span>
                                 <select class="setting-input small">
                                     <option>WASD + Space</option>
                                     <option>Arrows + Ctrl</option>
                                 </select>
                             </div>
                             <div class="control-row">
-                                <span>Gamepad:</span>
+                                <span data-i18n="lblGamepad">Gamepad:</span>
                                 <label class="toggle-switch">
                                     <input type="checkbox" checked>
                                     <span class="toggle-slider"></span>
@@ -91,7 +92,7 @@
             </div>
 
             <div class="button-group">
-                <button id="btn-back" class="menu-btn">Back</button>
+                <button id="btn-back" class="menu-btn" data-i18n="btnBack">Back</button>
             </div>
         </div>
     </div>
