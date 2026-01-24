@@ -14,7 +14,11 @@ export const translations = {
         lblDpad: "D-Pad Buttons",
         lblDesktopConfig: "Desktop Configuration",
         lblKeyboard: "Keyboard:",
-        lblGamepad: "Gamepad:"
+        lblGamepad: "Gamepad:",
+        lblChooseCharacter: "Choose Your Character",
+        speciesCat: "Feline",
+        speciesUnknown: "Locked",
+        btnStartAdventure: "Start Adventure"
     },
     es: {
         gameTitle: "Duendes en la Noche",
@@ -31,7 +35,11 @@ export const translations = {
         lblDpad: "Botones D-Pad",
         lblDesktopConfig: "Configuración de Escritorio",
         lblKeyboard: "Teclado:",
-        lblGamepad: "Mando:"
+        lblGamepad: "Mando:",
+        lblChooseCharacter: "Elige tu Personaje",
+        speciesCat: "Felino",
+        speciesUnknown: "Bloqueado",
+        btnStartAdventure: "Comenzar Aventura"
     },
     fr: {
         gameTitle: "Gobelins dans la Nuit",
@@ -48,7 +56,11 @@ export const translations = {
         lblDpad: "Boutons D-Pad",
         lblDesktopConfig: "Configuration Bureau",
         lblKeyboard: "Clavier:",
-        lblGamepad: "Manette:"
+        lblGamepad: "Manette:",
+        lblChooseCharacter: "Choisissez Votre Personnage",
+        speciesCat: "Félin",
+        speciesUnknown: "Verrouillé",
+        btnStartAdventure: "Commencer l'Aventure"
     },
     de: {
         gameTitle: "Goblins in der Nacht",
@@ -65,7 +77,11 @@ export const translations = {
         lblDpad: "D-Pad Tasten",
         lblDesktopConfig: "Desktop-Konfiguration",
         lblKeyboard: "Tastatur:",
-        lblGamepad: "Gamepad:"
+        lblGamepad: "Gamepad:",
+        lblChooseCharacter: "Wähle deinen Charakter",
+        speciesCat: "Katze",
+        speciesUnknown: "Gesperrt",
+        btnStartAdventure: "Abenteuer Starten"
     },
     jp: {
         gameTitle: "夜のゴブリン",
@@ -82,6 +98,10 @@ export const translations = {
         lblDpad: "十字キー",
         lblDesktopConfig: "デスクトップ設定",
         lblKeyboard: "キーボード:",
-        lblGamepad: "ゲームパッド:"
+        lblGamepad: "ゲームパッド:",
+        lblChooseCharacter: "キャラクターを選択",
+        speciesCat: "猫",
+        speciesUnknown: "未開放",
+        btnStartAdventure: "冒険を始める"
     }
 };

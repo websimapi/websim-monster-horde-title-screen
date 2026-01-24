@@ -19,6 +19,47 @@
             </div>
         </div>
 
+        <!-- Character Creation View -->
+        <div id="character-creation-view" class="menu-container hidden wide-view">
+            <button id="btn-char-back" class="close-btn" aria-label="Back">←</button>
+            <h2 class="game-title" style="font-size: 2rem;" data-i18n="lblChooseCharacter">Choose Your Character</h2>
+            
+            <div class="char-creation-content">
+                <!-- 3D Preview -->
+                <div class="char-preview-container">
+                    <div id="char-canvas-container"></div>
+                </div>
+
+                <!-- Selection List -->
+                <div class="char-selection-panel">
+                    <div class="species-list">
+                        <button class="species-card selected">
+                            <div class="species-icon">🐱</div>
+                            <div class="species-info">
+                                <h3 data-i18n="speciesCat">Feline</h3>
+                            </div>
+                        </button>
+                        
+                        <button class="species-card locked">
+                            <div class="species-icon">🔒</div>
+                            <div class="species-info">
+                                <h3 data-i18n="speciesUnknown">Locked</h3>
+                            </div>
+                        </button>
+                        
+                        <button class="species-card locked">
+                            <div class="species-icon">🔒</div>
+                            <div class="species-info">
+                                <h3 data-i18n="speciesUnknown">Locked</h3>
+                            </div>
+                        </button>
+                    </div>
+
+                    <button id="btn-start-adventure" class="menu-btn primary-action" data-i18n="btnStartAdventure">Start Adventure</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Settings View -->
         <div id="settings-view" class="menu-container hidden">
             <button id="btn-settings-back" class="close-btn" aria-label="Back">←</button>
