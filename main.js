@@ -261,19 +261,25 @@ function initCharacterCustomization() {
         patternId: 'none'
     };
 
+    // Helper to update the look
+    const applyUpdate = () => {
+        updateCatAppearance(state, colors);
+        updateUI();
+    };
+
     // Render Color Options
     colorContainer.innerHTML = '';
     colors.forEach(col => {
         const btn = document.createElement('button');
         btn.className = `swatch-btn ${col.locked ? 'locked' : ''} ${state.colorId === col.id ? 'selected' : ''}`;
         btn.style.backgroundColor = col.hex;
-        btn.title = col.i18n; // Simplified
+        btn.title = col.i18n; 
+        
         if (!col.locked) {
-            btn.onclick = () => {
+            btn.addEventListener('click', () => {
                 state.colorId = col.id;
-                updateCatAppearance(state, colors);
-                updateUI();
-            };
+                applyUpdate();
+            });
         }
         colorContainer.appendChild(btn);
     });
@@ -289,18 +295,16 @@ function initCharacterCustomization() {
             btn.style.background = '#444'; 
             btn.textContent = '🚫';
         } else if (pat.id === 'spots') {
-            btn.style.background = 'radial-gradient(circle, #000 20%, #666 20%)';
+            btn.style.background = 'radial-gradient(circle, #999 20%, transparent 21%)';
+            btn.style.backgroundColor = '#333';
             btn.style.backgroundSize = '10px 10px';
-        } else {
-             // Default locked look handles it
         }
 
         if (!pat.locked) {
-            btn.onclick = () => {
+            btn.addEventListener('click', () => {
                 state.patternId = pat.id;
-                updateCatAppearance(state, colors);
-                updateUI();
-            };
+                applyUpdate();
+            });
         }
         patternContainer.appendChild(btn);
     });
@@ -316,21 +320,26 @@ function initCharacterCustomization() {
     }
 
     // Size Slider
-    sizeSlider.addEventListener('input', (e) => {
+    // Use oninput to prevent duplicate listeners if init is called multiple times
+    sizeSlider.oninput = (e) => {
         const val = parseFloat(e.target.value);
         if (characterGroup) {
             characterGroup.scale.set(val, val, val);
         }
-    });
+    };
 }
 
 function updateCatAppearance(state, colors) {
-    if (!characterGroup || !characterGroup.userData.mainMaterial) return;
+    if (!characterGroup) return;
+
+    // Use shared material
+    const material = characterGroup.userData.mainMaterial;
+    if (!material) return;
 
     const colorObj = colors.find(c => c.id === state.colorId);
-    const material = characterGroup.userData.mainMaterial;
+    if (!colorObj) return;
 
-    // Dispose old texture
+    // Dispose old texture if it exists
     if (material.map) {
         material.map.dispose();
     }
@@ -339,8 +348,9 @@ function updateCatAppearance(state, colors) {
     const texture = createProceduralTexture(colorObj.hex, state.patternId);
     texture.colorSpace = THREE.SRGBColorSpace;
     
+    // Assign and force update
     material.map = texture;
-    material.color.setHex(0xffffff); 
+    material.color.setHex(0xffffff); // Ensure base color is white so texture shows true colors
     material.needsUpdate = true;
 }
 
@@ -358,16 +368,24 @@ function createProceduralTexture(colorHex, patternId) {
         const col = new THREE.Color(colorHex);
         const hsl = {};
         col.getHSL(hsl);
-        // Higher contrast spots
-        const spotColor = hsl.l < 0.5 ? col.offsetHSL(0, 0, 0.3) : col.offsetHSL(0, 0, -0.3);
         
-        ctx.fillStyle = `#${spotColor.getHexString()}`;
+        // Clone to avoid mutating original color object
+        const spotCol = col.clone();
+        
+        // Calculate spot color (lighter or darker depending on brightness)
+        if (hsl.l < 0.5) {
+            spotCol.offsetHSL(0, 0, 0.2); // Light spots on dark
+        } else {
+            spotCol.offsetHSL(0, 0, -0.2); // Dark spots on light
+        }
+        
+        ctx.fillStyle = `#${spotCol.getHexString()}`;
 
-        // Draw random spots - more dense
-        for (let i = 0; i < 150; i++) {
+        // Draw random spots
+        for (let i = 0; i < 80; i++) {
             const x = Math.random() * 512;
             const y = Math.random() * 512;
-            const r = 5 + Math.random() * 20;
+            const r = 10 + Math.random() * 30;
             ctx.beginPath();
             ctx.arc(x, y, r, 0, Math.PI * 2);
             ctx.fill();
@@ -377,6 +395,9 @@ function createProceduralTexture(colorHex, patternId) {
     const tex = new THREE.CanvasTexture(canvas);
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
+    // Anisotropy helps texture look sharp at angles
+    if (renderer) tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    
     return tex;
 }
 
