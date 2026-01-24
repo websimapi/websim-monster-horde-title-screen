@@ -1,0 +1,126 @@
+:root {
+    --primary-color: #4a9c2d;
+    --text-color: #ffffff;
+    --disabled-color: #555555;
+    --disabled-text: #888888;
+    --btn-bg: rgba(0, 0, 0, 0.8);
+    --btn-border: #2a5c1d;
+    --font-family: 'Courier New', Courier, monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000;
+    font-family: var(--font-family);
+}
+
+#app {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-image: url('background_monsters.png');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Dark overlay to make text pop */
+.background-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.8) 100%);
+    z-index: 1;
+}
+
+.menu-container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+.game-title {
+    color: var(--primary-color);
+    font-size: 3rem;
+    text-shadow: 0 0 10px #000, 0 0 20px var(--primary-color);
+    text-align: center;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.menu-btn {
+    background-color: var(--btn-bg);
+    color: var(--text-color);
+    border: 2px solid var(--btn-border);
+    padding: 15px 20px;
+    font-size: 1.2rem;
+    font-family: var(--font-family);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    border-radius: 4px;
+    width: 100%;
+}
+
+.menu-btn:not(:disabled):hover {
+    background-color: var(--primary-color);
+    color: #000;
+    transform: scale(1.02);
+    box-shadow: 0 0 15px var(--primary-color);
+}
+
+.menu-btn:not(:disabled):active {
+    transform: scale(0.98);
+}
+
+.menu-btn:disabled {
+    background-color: #222;
+    border-color: #333;
+    color: var(--disabled-text);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+    .game-title {
+        font-size: 2rem;
+    }
+    
+    .menu-btn {
+        padding: 20px; /* Larger touch target */
+        font-size: 1.1rem;
+    }
+}
