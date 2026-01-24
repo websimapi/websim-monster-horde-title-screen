@@ -340,13 +340,19 @@ input:checked + .toggle-slider:before {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    flex-grow: 1;
     overflow-y: auto;
+}
+
+.species-list.horizontal {
+    flex-direction: row;
+    flex-grow: 0;
+    margin-bottom: 10px;
 }
 
 .species-card {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 15px;
     background: rgba(255,255,255,0.05);
     border: 1px solid transparent;
@@ -356,6 +362,12 @@ input:checked + .toggle-slider:before {
     transition: all 0.2s;
     text-align: left;
     color: var(--text-color);
+    flex: 1;
+}
+
+.species-card.compact {
+    padding: 10px;
+    min-width: 60px;
 }
 
 .species-card:hover {
@@ -383,6 +395,75 @@ input:checked + .toggle-slider:before {
     font-size: 1rem;
     text-transform: uppercase;
     font-family: var(--font-family);
+}
+
+.section-title {
+    font-size: 0.9rem;
+    color: var(--disabled-text);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 4px;
+}
+
+.control-group {
+    margin-bottom: 15px;
+}
+
+.control-group label {
+    display: block;
+    font-size: 0.8rem;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.swatch-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.swatch-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.swatch-btn:hover {
+    transform: scale(1.1);
+}
+
+.swatch-btn.selected {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px var(--primary-color);
+    transform: scale(1.1);
+}
+
+.swatch-btn.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-image: linear-gradient(45deg, #222 25%, #333 25%, #333 50%, #222 50%, #222 75%, #333 75%, #333 100%);
+    background-size: 10px 10px;
+}
+
+.swatch-btn.locked::after {
+    content: '🔒';
+    font-size: 0.8rem;
+}
+
+.small-icon { font-size: 0.8rem; }
+.big-icon { font-size: 1.2rem; }
+
+.spacer {
+    flex-grow: 1;
 }
 
 .primary-action {

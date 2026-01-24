@@ -207,6 +207,9 @@ function initThreeJS() {
     // Create the Cat
     createCatModel();
 
+    // Initialize UI for customization
+    initCharacterCustomization();
+
     // Handle Resize
     window.addEventListener('resize', onWindowResize);
     
@@ -214,15 +217,161 @@ function initThreeJS() {
     animate();
 }
 
+function initCharacterCustomization() {
+    const sizeSlider = document.getElementById('char-size-slider');
+    const colorContainer = document.getElementById('color-options');
+    const patternContainer = document.getElementById('pattern-options');
+
+    // Data for customization
+    const colors = [
+        { id: 'black', hex: '#1a1a1a', i18n: 'colVoid', locked: false },
+        { id: 'orange', hex: '#e67e22', i18n: 'colPumpkin', locked: false },
+        { id: 'white', hex: '#eeeeee', i18n: 'colGhost', locked: true },
+        { id: 'purple', hex: '#663399', i18n: 'colShadow', locked: true }
+    ];
+
+    const patterns = [
+        { id: 'none', i18n: 'patSolid', locked: false },
+        { id: 'spots', i18n: 'patSpots', locked: false },
+        { id: 'stripes', i18n: 'patStripes', locked: true },
+        { id: 'calico', i18n: 'patCalico', locked: true }
+    ];
+
+    // State
+    const state = {
+        size: 1,
+        colorId: 'black',
+        patternId: 'none'
+    };
+
+    // Render Color Options
+    colorContainer.innerHTML = '';
+    colors.forEach(col => {
+        const btn = document.createElement('button');
+        btn.className = `swatch-btn ${col.locked ? 'locked' : ''} ${state.colorId === col.id ? 'selected' : ''}`;
+        btn.style.backgroundColor = col.hex;
+        btn.title = col.i18n; // Simplified
+        if (!col.locked) {
+            btn.onclick = () => {
+                state.colorId = col.id;
+                updateCatAppearance(state, colors);
+                updateUI();
+            };
+        }
+        colorContainer.appendChild(btn);
+    });
+
+    // Render Pattern Options
+    patternContainer.innerHTML = '';
+    patterns.forEach(pat => {
+        const btn = document.createElement('button');
+        btn.className = `swatch-btn ${pat.locked ? 'locked' : ''} ${state.patternId === pat.id ? 'selected' : ''}`;
+        
+        // Visual representation of pattern
+        if (pat.id === 'none') {
+            btn.style.background = '#444'; 
+            btn.textContent = '🚫';
+        } else if (pat.id === 'spots') {
+            btn.style.background = 'radial-gradient(circle, #000 20%, #666 20%)';
+            btn.style.backgroundSize = '10px 10px';
+        } else {
+             // Default locked look handles it
+        }
+
+        if (!pat.locked) {
+            btn.onclick = () => {
+                state.patternId = pat.id;
+                updateCatAppearance(state, colors);
+                updateUI();
+            };
+        }
+        patternContainer.appendChild(btn);
+    });
+
+    function updateUI() {
+        // Update selection classes
+        Array.from(colorContainer.children).forEach((btn, i) => {
+            btn.classList.toggle('selected', colors[i].id === state.colorId);
+        });
+        Array.from(patternContainer.children).forEach((btn, i) => {
+            btn.classList.toggle('selected', patterns[i].id === state.patternId);
+        });
+    }
+
+    // Size Slider
+    sizeSlider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (characterGroup) {
+            characterGroup.scale.set(val, val, val);
+        }
+    });
+}
+
+function updateCatAppearance(state, colors) {
+    if (!characterGroup || !characterGroup.userData.mainMaterial) return;
+
+    const colorObj = colors.find(c => c.id === state.colorId);
+    const material = characterGroup.userData.mainMaterial;
+
+    // Generate Texture
+    const texture = createProceduralTexture(colorObj.hex, state.patternId);
+    
+    material.map = texture;
+    material.color.setHex(0xffffff); // Use texture color directly
+    material.needsUpdate = true;
+}
+
+function createProceduralTexture(colorHex, patternId) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+
+    // Fill Background
+    ctx.fillStyle = colorHex;
+    ctx.fillRect(0, 0, 512, 512);
+
+    if (patternId === 'spots') {
+        // Determine spot color (darker or lighter)
+        const col = new THREE.Color(colorHex);
+        const hsl = {};
+        col.getHSL(hsl);
+        // If dark color, lighter spots. If light color, darker spots.
+        const spotColor = hsl.l < 0.5 ? col.offsetHSL(0, 0, 0.2) : col.offsetHSL(0, 0, -0.2);
+        
+        ctx.fillStyle = `#${spotColor.getHexString()}`;
+
+        // Draw random spots
+        for (let i = 0; i < 50; i++) {
+            const x = Math.random() * 512;
+            const y = Math.random() * 512;
+            const r = 10 + Math.random() * 30;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    return tex;
+}
+
 function createCatModel() {
     characterGroup = new THREE.Group();
     scene.add(characterGroup);
 
+    // Initial Material State (Black, No Pattern)
+    const initTexture = createProceduralTexture('#1a1a1a', 'none');
+    
     const catMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x1a1a1a, // Dark grey/Black
+        map: initTexture,
+        color: 0xffffff,
         roughness: 0.6,
         metalness: 0.1
     });
+
+    // Store for updates
+    characterGroup.userData.mainMaterial = catMaterial;
     
     const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Glowing green
     const pupilMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });

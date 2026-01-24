@@ -18,7 +18,16 @@ export const translations = {
         lblChooseCharacter: "Choose Your Character",
         speciesCat: "Feline",
         speciesUnknown: "Locked",
-        btnStartAdventure: "Start Adventure"
+        btnStartAdventure: "Start Adventure",
+        lblSpecies: "Species",
+        lblAppearance: "Appearance",
+        lblSize: "Size",
+        lblColor: "Color",
+        lblPattern: "Pattern",
+        colVoid: "Void",
+        colPumpkin: "Pumpkin",
+        patSolid: "Solid",
+        patSpots: "Spots"
     },
     es: {
         gameTitle: "Duendes en la Noche",
@@ -39,7 +48,16 @@ export const translations = {
         lblChooseCharacter: "Elige tu Personaje",
         speciesCat: "Felino",
         speciesUnknown: "Bloqueado",
-        btnStartAdventure: "Comenzar Aventura"
+        btnStartAdventure: "Comenzar Aventura",
+        lblSpecies: "Especie",
+        lblAppearance: "Apariencia",
+        lblSize: "Tamaño",
+        lblColor: "Color",
+        lblPattern: "Patrón",
+        colVoid: "Vacío",
+        colPumpkin: "Calabaza",
+        patSolid: "Sólido",
+        patSpots: "Manchas"
     },
     fr: {
         gameTitle: "Gobelins dans la Nuit",
@@ -60,7 +78,16 @@ export const translations = {
         lblChooseCharacter: "Choisissez Votre Personnage",
         speciesCat: "Félin",
         speciesUnknown: "Verrouillé",
-        btnStartAdventure: "Commencer l'Aventure"
+        btnStartAdventure: "Commencer l'Aventure",
+        lblSpecies: "Espèce",
+        lblAppearance: "Apparence",
+        lblSize: "Taille",
+        lblColor: "Couleur",
+        lblPattern: "Motif",
+        colVoid: "Vide",
+        colPumpkin: "Citrouille",
+        patSolid: "Solide",
+        patSpots: "Taches"
     },
     de: {
         gameTitle: "Goblins in der Nacht",
@@ -81,7 +108,16 @@ export const translations = {
         lblChooseCharacter: "Wähle deinen Charakter",
         speciesCat: "Katze",
         speciesUnknown: "Gesperrt",
-        btnStartAdventure: "Abenteuer Starten"
+        btnStartAdventure: "Abenteuer Starten",
+        lblSpecies: "Spezies",
+        lblAppearance: "Aussehen",
+        lblSize: "Größe",
+        lblColor: "Farbe",
+        lblPattern: "Muster",
+        colVoid: "Leere",
+        colPumpkin: "Kürbis",
+        patSolid: "Vollton",
+        patSpots: "Flecken"
     },
     jp: {
         gameTitle: "夜のゴブリン",
@@ -102,6 +138,15 @@ export const translations = {
         lblChooseCharacter: "キャラクターを選択",
         speciesCat: "猫",
         speciesUnknown: "未開放",
-        btnStartAdventure: "冒険を始める"
+        btnStartAdventure: "冒険を始める",
+        lblSpecies: "種族",
+        lblAppearance: "外見",
+        lblSize: "サイズ",
+        lblColor: "色",
+        lblPattern: "模様",
+        colVoid: "ヴォイド",
+        colPumpkin: "カボチャ",
+        patSolid: "無地",
+        patSpots: "斑点"
     }
 };

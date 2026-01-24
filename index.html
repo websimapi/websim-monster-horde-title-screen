@@ -32,28 +32,55 @@
 
                 <!-- Selection List -->
                 <div class="char-selection-panel">
-                    <div class="species-list">
-                        <button class="species-card selected">
-                            <div class="species-icon">🐱</div>
-                            <div class="species-info">
-                                <h3 data-i18n="speciesCat">Feline</h3>
-                            </div>
-                        </button>
-                        
-                        <button class="species-card locked">
-                            <div class="species-icon">🔒</div>
-                            <div class="species-info">
-                                <h3 data-i18n="speciesUnknown">Locked</h3>
-                            </div>
-                        </button>
-                        
-                        <button class="species-card locked">
-                            <div class="species-icon">🔒</div>
-                            <div class="species-info">
-                                <h3 data-i18n="speciesUnknown">Locked</h3>
-                            </div>
-                        </button>
+                    
+                    <div class="panel-section">
+                        <h3 class="section-title" data-i18n="lblSpecies">Species</h3>
+                        <div class="species-list horizontal">
+                            <button class="species-card selected compact">
+                                <div class="species-icon">🐱</div>
+                            </button>
+                            
+                            <button class="species-card locked compact">
+                                <div class="species-icon">🔒</div>
+                            </button>
+                            
+                            <button class="species-card locked compact">
+                                <div class="species-icon">🔒</div>
+                            </button>
+                        </div>
                     </div>
+
+                    <div class="panel-section">
+                        <h3 class="section-title" data-i18n="lblAppearance">Appearance</h3>
+                        
+                        <!-- Size Slider -->
+                        <div class="control-group">
+                            <label data-i18n="lblSize">Size</label>
+                            <div class="range-container">
+                                <span class="range-icon small-icon">▫️</span>
+                                <input type="range" id="char-size-slider" min="0.5" max="1.5" step="0.1" value="1" class="setting-range">
+                                <span class="range-icon big-icon">⬜</span>
+                            </div>
+                        </div>
+
+                        <!-- Color Selection -->
+                        <div class="control-group">
+                            <label data-i18n="lblColor">Color</label>
+                            <div class="swatch-grid" id="color-options">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Pattern Selection -->
+                        <div class="control-group">
+                            <label data-i18n="lblPattern">Pattern</label>
+                            <div class="swatch-grid" id="pattern-options">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="spacer"></div>
 
                     <button id="btn-start-adventure" class="menu-btn primary-action" data-i18n="btnStartAdventure">Start Adventure</button>
                 </div>
