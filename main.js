@@ -88,8 +88,7 @@ function setupEventListeners() {
     // Settings Navigation
     const mainMenu = document.querySelector('.menu-container:not(#settings-view)');
     const settingsMenu = document.getElementById('settings-view');
-    const backBtn = document.getElementById('btn-back');
-    const closeBtn = document.getElementById('btn-close-settings');
+    const settingsBackBtn = document.getElementById('btn-settings-back');
 
     function openSettings() {
         mainMenu.classList.add('hidden');
@@ -102,8 +101,7 @@ function setupEventListeners() {
     }
 
     settingsBtn.addEventListener('click', openSettings);
-    backBtn.addEventListener('click', closeSettings);
-    closeBtn.addEventListener('click', closeSettings);
+    settingsBackBtn.addEventListener('click', closeSettings);
 
     // Settings Logic
     const languageSelect = document.getElementById('setting-language');
