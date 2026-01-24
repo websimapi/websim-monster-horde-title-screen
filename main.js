@@ -2,6 +2,7 @@
 import { translations } from './translations.js';
 import * as THREE from 'https://esm.sh/three@0.160.0';
 import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+import nipplejs from 'https://esm.sh/nipplejs@0.10.1';
 
 document.addEventListener('DOMContentLoaded', () => {
     initAudio();
@@ -114,6 +115,17 @@ function setupEventListeners() {
 
     settingsBtn.addEventListener('click', openSettings);
     settingsBackBtn.addEventListener('click', closeSettings);
+    
+    // Start Adventure
+    const startAdventureBtn = document.getElementById('btn-start-adventure');
+    startAdventureBtn.addEventListener('click', () => {
+        startGame();
+    });
+
+    const exitGameBtn = document.getElementById('btn-exit-game');
+    exitGameBtn.addEventListener('click', () => {
+        stopGame();
+    });
 
     // Settings Logic
     const languageSelect = document.getElementById('setting-language');
@@ -139,9 +151,14 @@ function setupEventListeners() {
     });
 }
 
-// --- Three.js Character Creator ---
+// --- Three.js Character Creator & Game System ---
 let scene, camera, renderer, characterGroup, controls;
 let animationId;
+let gameActive = false;
+let gameScene, gameCamera;
+let joystickManager;
+let inputState = { x: 0, y: 0 };
+let keyState = {};
 
 function initThreeJS() {
     const container = document.getElementById('char-canvas-container');
@@ -598,13 +615,13 @@ function createCatModel() {
     tailGroup.add(tailMesh);
 
 
-    // Store refs
-    characterGroup.userData = {
+    // Store refs (use Object.assign to preserve mainMaterial)
+    characterGroup.userData = Object.assign(characterGroup.userData || {}, {
         head: headGroup,
         tail: tailGroup,
         fl: fl, fr: fr, bl: bl, br: br,
         time: 0
-    };
+    });
 }
 
 function onWindowResize() {
@@ -624,24 +641,230 @@ function onWindowResize() {
 function animate() {
     animationId = requestAnimationFrame(animate);
     
-    if (controls) controls.update();
+    if (gameActive) {
+        updateGame();
+        renderer.render(gameScene, gameCamera);
+    } else {
+        // Menu/Preview Mode
+        if (controls) controls.update();
+        
+        // Idle Animation
+        if (characterGroup && characterGroup.userData && characterGroup.userData.head) {
+            const data = characterGroup.userData;
+            data.time += 0.02;
+
+            // Breathing / Idle
+            data.head.position.y = 0.6 + Math.sin(data.time) * 0.005;
+            data.head.rotation.z = Math.sin(data.time * 0.5) * 0.05;
+            data.tail.rotation.z = Math.sin(data.time * 2) * 0.1;
+            data.tail.rotation.y = Math.cos(data.time * 1.5) * 0.1;
+        }
+
+        if (scene && camera) {
+            renderer.render(scene, camera);
+        }
+    }
+}
+
+// --- Game Logic ---
+
+function startGame() {
+    gameActive = true;
     
-    // Idle Animation
-    if (characterGroup && characterGroup.userData) {
-        const data = characterGroup.userData;
-        data.time += 0.02;
+    // UI Transitions
+    document.getElementById('character-creation-view').classList.add('hidden');
+    document.getElementById('game-ui').classList.remove('hidden');
+    
+    // Setup Game Scene
+    initGameScene();
+    
+    // Setup Controls
+    setupGameControls();
+}
 
-        // Breathing (Scale torso slightly? or just move head)
-        // Let's just bob the head
-        data.head.position.y = 0.6 + Math.sin(data.time) * 0.005;
-        data.head.rotation.z = Math.sin(data.time * 0.5) * 0.05; // Look around slightly
-
-        // Tail sway
-        data.tail.rotation.z = Math.sin(data.time * 2) * 0.1;
-        data.tail.rotation.y = Math.cos(data.time * 1.5) * 0.1;
+function stopGame() {
+    gameActive = false;
+    
+    // Cleanup Joystick
+    if (joystickManager) {
+        joystickManager.destroy();
+        joystickManager = null;
     }
 
-    renderer.render(scene, camera);
+    // Move Character back to Preview Scene
+    if (characterGroup) {
+        scene.add(characterGroup);
+        characterGroup.position.set(0, 0, 0);
+        characterGroup.rotation.set(0, 0, 0);
+        characterGroup.scale.set(1, 1, 1); // Reset scale if modified by game
+        
+        // Re-apply customization scale from slider
+        const sliderVal = parseFloat(document.getElementById('char-size-slider').value);
+        characterGroup.scale.set(sliderVal, sliderVal, sliderVal);
+    }
+
+    // UI Transitions
+    document.getElementById('game-ui').classList.add('hidden');
+    document.getElementById('character-creation-view').classList.remove('hidden');
+    
+    // Resize renderer for preview window (it might have been fullscreen)
+    onWindowResize(); 
+}
+
+function initGameScene() {
+    // New Scene
+    gameScene = new THREE.Scene();
+    gameScene.fog = new THREE.FogExp2(0x111111, 0.05);
+    gameScene.background = new THREE.Color(0x050505);
+
+    // Camera (Follow Cam)
+    gameCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    gameCamera.position.set(0, 5, 10);
+    gameCamera.lookAt(0, 0, 0);
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+    gameScene.add(ambientLight);
+
+    const moonLight = new THREE.DirectionalLight(0xaaccff, 0.8);
+    moonLight.position.set(10, 20, 10);
+    moonLight.castShadow = true;
+    gameScene.add(moonLight);
+
+    // Floor
+    const floorGeo = new THREE.PlaneGeometry(100, 100);
+    const floorMat = new THREE.MeshStandardMaterial({ 
+        color: 0x1a1a1a, 
+        roughness: 0.8,
+        metalness: 0.2 
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    gameScene.add(floor);
+
+    // Move Character to Game Scene
+    if (characterGroup) {
+        gameScene.add(characterGroup);
+        characterGroup.position.set(0, 0, 0);
+    }
+
+    // Resize renderer to full screen
+    const app = document.getElementById('app');
+    renderer.setSize(app.clientWidth, app.clientHeight);
+    gameCamera.aspect = app.clientWidth / app.clientHeight;
+    gameCamera.updateProjectionMatrix();
+}
+
+function setupGameControls() {
+    // Keyboard
+    window.addEventListener('keydown', (e) => { keyState[e.code] = true; });
+    window.addEventListener('keyup', (e) => { keyState[e.code] = false; });
+
+    // Touch/Joystick (Only if touch supported or small screen)
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouch) {
+        const zone = document.getElementById('joystick-zone');
+        joystickManager = nipplejs.create({
+            zone: zone,
+            mode: 'static',
+            position: { left: '50%', top: '50%' },
+            color: 'white',
+            size: 100
+        });
+
+        joystickManager.on('move', (evt, data) => {
+            if (data && data.vector) {
+                inputState.x = data.vector.x;
+                inputState.y = data.vector.y;
+            }
+        });
+
+        joystickManager.on('end', () => {
+            inputState.x = 0;
+            inputState.y = 0;
+        });
+    }
+}
+
+function updateGame() {
+    // 1. Gather Input
+    let dx = 0;
+    let dy = 0; // Forward/Back
+
+    // Joystick
+    dx += inputState.x;
+    dy += inputState.y;
+
+    // Keyboard (WASD / Arrows)
+    if (keyState['KeyW'] || keyState['ArrowUp']) dy += 1;
+    if (keyState['KeyS'] || keyState['ArrowDown']) dy -= 1;
+    if (keyState['KeyA'] || keyState['ArrowLeft']) dx -= 1;
+    if (keyState['KeyD'] || keyState['ArrowRight']) dx += 1;
+
+    // Gamepad
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    if (gamepads[0]) {
+        const gp = gamepads[0];
+        // Left stick
+        if (Math.abs(gp.axes[0]) > 0.1) dx += gp.axes[0];
+        if (Math.abs(gp.axes[1]) > 0.1) dy -= gp.axes[1]; // Y is usually inverted on gamepads
+    }
+
+    // Clamp input length to 1
+    const len = Math.sqrt(dx*dx + dy*dy);
+    if (len > 1) {
+        dx /= len;
+        dy /= len;
+    }
+
+    // 2. Move Character
+    if (characterGroup) {
+        const speed = 0.15;
+        // In 3D, 'y' input maps to -Z (forward)
+        // 'x' input maps to X (right)
+        
+        if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+            characterGroup.position.x += dx * speed;
+            characterGroup.position.z -= dy * speed;
+            
+            // Rotate character to face movement direction
+            const angle = Math.atan2(dx, dy); // Note: dy is forward (z-up logic inverted)
+            characterGroup.rotation.y = angle;
+            
+            // Simple walk bob
+            const walkTime = Date.now() * 0.01;
+            characterGroup.position.y = Math.abs(Math.sin(walkTime * 2)) * 0.1;
+            
+            // Animate Legs (simple procedural)
+            if (characterGroup.userData.fl) {
+               characterGroup.userData.fl.rotation.x = Math.sin(walkTime) * 0.5;
+               characterGroup.userData.fr.rotation.x = Math.sin(walkTime + Math.PI) * 0.5;
+               characterGroup.userData.bl.rotation.x = Math.sin(walkTime + Math.PI) * 0.5;
+               characterGroup.userData.br.rotation.x = Math.sin(walkTime) * 0.5;
+            }
+        } else {
+            // Idle stance
+            characterGroup.position.y = 0;
+            if (characterGroup.userData.fl) {
+                characterGroup.userData.fl.rotation.x = 0;
+                characterGroup.userData.fr.rotation.x = 0;
+                characterGroup.userData.bl.rotation.x = 0;
+                characterGroup.userData.br.rotation.x = 0;
+            }
+        }
+    }
+
+    // 3. Update Camera
+    if (gameCamera && characterGroup) {
+        // Smooth follow
+        const targetPos = characterGroup.position.clone();
+        targetPos.y += 5;
+        targetPos.z += 8;
+        
+        gameCamera.position.lerp(targetPos, 0.1);
+        gameCamera.lookAt(characterGroup.position);
+    }
 }
 
 function updateLanguage(lang) {
