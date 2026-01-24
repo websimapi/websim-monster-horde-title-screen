@@ -330,11 +330,17 @@ function updateCatAppearance(state, colors) {
     const colorObj = colors.find(c => c.id === state.colorId);
     const material = characterGroup.userData.mainMaterial;
 
+    // Dispose old texture
+    if (material.map) {
+        material.map.dispose();
+    }
+
     // Generate Texture
     const texture = createProceduralTexture(colorObj.hex, state.patternId);
+    texture.colorSpace = THREE.SRGBColorSpace;
     
     material.map = texture;
-    material.color.setHex(0xffffff); // Use texture color directly
+    material.color.setHex(0xffffff); 
     material.needsUpdate = true;
 }
 
@@ -349,20 +355,19 @@ function createProceduralTexture(colorHex, patternId) {
     ctx.fillRect(0, 0, 512, 512);
 
     if (patternId === 'spots') {
-        // Determine spot color (darker or lighter)
         const col = new THREE.Color(colorHex);
         const hsl = {};
         col.getHSL(hsl);
-        // If dark color, lighter spots. If light color, darker spots.
-        const spotColor = hsl.l < 0.5 ? col.offsetHSL(0, 0, 0.2) : col.offsetHSL(0, 0, -0.2);
+        // Higher contrast spots
+        const spotColor = hsl.l < 0.5 ? col.offsetHSL(0, 0, 0.3) : col.offsetHSL(0, 0, -0.3);
         
         ctx.fillStyle = `#${spotColor.getHexString()}`;
 
-        // Draw random spots
-        for (let i = 0; i < 50; i++) {
+        // Draw random spots - more dense
+        for (let i = 0; i < 150; i++) {
             const x = Math.random() * 512;
             const y = Math.random() * 512;
-            const r = 10 + Math.random() * 30;
+            const r = 5 + Math.random() * 20;
             ctx.beginPath();
             ctx.arc(x, y, r, 0, Math.PI * 2);
             ctx.fill();
@@ -370,6 +375,8 @@ function createProceduralTexture(colorHex, patternId) {
     }
 
     const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
     return tex;
 }
 
@@ -379,6 +386,7 @@ function createCatModel() {
 
     // Material Setup
     const initTexture = createProceduralTexture('#1a1a1a', 'none');
+    initTexture.colorSpace = THREE.SRGBColorSpace;
     const catMaterial = new THREE.MeshStandardMaterial({ 
         map: initTexture,
         color: 0xffffff,
